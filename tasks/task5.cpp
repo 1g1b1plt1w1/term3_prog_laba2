@@ -1,18 +1,54 @@
 #include <iostream>
+#include <vector>
 #include "tree.h"
 #include "task5.h"
 
 using namespace std;
 
-bool check_avl(TreeNode* node) {
-    if (!node) return true;
+void print_snake(Tree t) {
+    if (t.root == nullptr) {
+        return;
+    }
 
-    int bal = get_balance(node);
+    vector<TreeNode*> q;
+    q.push_back(t.root);
 
-    if (bal < -1 || bal > 1)
-        return false;
+    int head = 0;
+    bool reverse_order = false;
+    bool first_elem = true;
 
-    return check_avl(node->left) && check_avl(node->right);
+    while (head < (int)q.size()) {
+        int level_start = head;
+        int level_end = q.size();
+
+        if (!reverse_order) {
+            for (int i = level_start; i < level_end; ++i) {
+                if (!first_elem) cout << " - ";
+                cout << q[i]->data;
+                first_elem = false;
+            }
+        } else {
+            for (int i = level_end - 1; i >= level_start; --i) {
+                if (!first_elem) cout << " - ";
+                cout << q[i]->data;
+                first_elem = false;
+            }
+        }
+
+        for (int i = level_start; i < level_end; ++i) {
+            if (q[i]->left != nullptr) {
+                q.push_back(q[i]->left);
+            }
+            if (q[i]->right != nullptr) {
+                q.push_back(q[i]->right);
+            }
+        }
+
+        head = level_end;
+        reverse_order = !reverse_order;
+    }
+
+    cout << endl;
 }
 
 void run_task5() {
@@ -22,5 +58,5 @@ void run_task5() {
     while (cin >> val && val != 0) {
         t.root = Tree_insert(t.root, val);
     }
-    Tree_print(t);
+    print_snake(t);
 }

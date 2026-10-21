@@ -14,7 +14,7 @@ void Set_destroy(Set& s) {
 }
 
 void Set_add(Set& s, const string& value) {
-    hashOpen_insert(s.map, value);
+    hashOpen_insert_lineal(s.map, value);
 }
 
 bool Set_del(Set& s, const string& value) {

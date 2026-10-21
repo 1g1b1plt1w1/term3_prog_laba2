@@ -586,21 +586,6 @@ void parsing(const string& filename, const string& query) {
     write(filename);
 }
 
-void run_task2() {
-    cout << "Task 2 (Set ADT)\n";
-    string filename, query;
-    cout << "Enter filename: ";
-    cin >> filename;
-    cout << "Enter query (e.g. SETADD myset val1, SETDEL myset val1, SET_AT myset val1, PRINT myset):\n> ";
-    cin.ignore();
-    getline(cin, query);
-    try {
-        parsing(filename, query);
-    } catch (const exception& e) {
-        cout << e.what() << endl;
-    }
-}
-
 void run_task(int choice) {
     switch (choice) {
         case 1: {

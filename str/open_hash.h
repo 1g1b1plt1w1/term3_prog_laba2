@@ -29,9 +29,10 @@ size_t hash_djb2(const string& key);
 size_t hash_fnv1a(const string& key);
 size_t hash_step(const string& key, size_t cap);
 
-int hashOpen_find(const Map& hashOpen, const string& find_value);
-void hashOpen_insert(Map& hashOpen, const string& new_value);
-bool hashOpen_del(Map& hashOpen, const string& del_value);
+int hashOpen_find(const Map& hashOpen, const string& find_value,bool is_lineal = true);
+void hashOpen_insert_lineal(Map& hashOpen, const string& new_value);
+void hashOpen_insert_double(Map& hashOpen,const string& new_value);
+bool hashOpen_del(Map& hashOpen, const string& del_value,bool is_lineal = true);
 
-void restruct_map(Map& hashOpen);
+void restruct_map(Map& hashOpen,bool is_lineal = true);
 #endif

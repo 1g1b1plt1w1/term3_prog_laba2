@@ -2,8 +2,7 @@
 #define TASK5_H
 
 #include "tree.h"
-
-bool check_avl(TreeNode* node);
+void print_snake(Tree t);
 void run_task5();
 
 #endif
