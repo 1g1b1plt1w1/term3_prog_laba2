@@ -156,19 +156,57 @@ string Tree_read_node(TreeNode* node) {
     return ss.str();
 }
 
+bool is_member(const Tree& tree,int find_data){
+    if (!tree.root){
+        return 0;
+    }
+    TreeNode* temp = tree.root;
+    while(temp && temp -> data != find_data){
+        if (temp -> data > find_data){
+            temp = temp -> left;
+        }
+        else{
+            temp = temp -> right;
+        }
+    }
+    if (!temp){
+        return 0;
+    }
+    return 1;
+}
+
 string Tree_read(const Tree& tree) {
     if (!tree.root) return "";
     return Tree_read_node(tree.root);
 }
 
-bool Tree_find(TreeNode* node, int data) {
-    if (node->data == data) {
-        return 1;
+void get_level_nodes(TreeNode* node, int target_depth, int current_depth, const string& path, stringstream& ss) {
+    if (!node) return;
+
+    if (current_depth == target_depth) {
+        ss << path << " = " << node->data << "\n";
+        return;
     }
 
-    if (data > node->data)
-        Tree_find(node->right, data);
-    else if (data < node->data)
-        Tree_find(node->left, data);
-    return 0;
+    get_level_nodes(node->left, target_depth, current_depth + 1, path + "->left", ss);
+    get_level_nodes(node->right, target_depth, current_depth + 1, path + "->right", ss);
+}
+
+string Tree_print_node(TreeNode* node) {
+    if (!node) {
+        return "";
+    }
+
+    stringstream ss;
+
+    for (int d = 0; d < node->height; ++d) {
+        get_level_nodes(node, d, 0, "root", ss);
+    }
+
+    return ss.str();
+}
+
+void Tree_print(const Tree& tree) {
+    if (!tree.root) return;
+    cout << Tree_print_node(tree.root);
 }

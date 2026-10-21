@@ -1,143 +1,234 @@
-#pragma once
-#include <string>
-#include "stack.h"
 #include "task1.h"
+#include "stack.h"
+#include <cctype>
+#include <string>
+#include <iostream>
 
 using namespace std;
 
-static int prec(const string& op){
-    if(op == "!") return 3;
-    if(op == "&") return 2;
-    if(op == "|" || op == "^") return 1;
-    return -1;
+static bool stack_is_empty(const Stack& s) {
+    return s.list.head == nullptr;
 }
 
-static bool applyOp(const string& op, Stack& values){
-    if(op == "!"){
-        string a = Stack_peek(values);
-        if(a == "") return false;
-        Stack_pop(values);
-        if(a!="0" && a!="1") return false;
-        Stack_push_back(values, (a=="1") ? "0" : "1");
-        return true;
+static string stack_peek(const Stack& s) {
+    if (s.list.head == nullptr) {
+        return "";
     }
+    return s.list.head->data;
+}
 
-    string rhs = Stack_peek(values);
-    if(rhs == "") return false;
-    Stack_pop(values);
+static int get_precedence(const string& op) {
+    if (op == "+" || op == "-") {
+        return 1;
+    }
+    if (op == "*") {
+        return 2;
+    }
+    return 0;
+}
 
-    string lhs = Stack_peek(values);
-    if(lhs == "") return false;
-    Stack_pop(values);
-
-    if((lhs!="0" && lhs!="1") || (rhs!="0" && rhs!="1"))
+static bool apply_top_op(Stack& vals, Stack& ops) {
+    if (stack_is_empty(ops)) {
         return false;
-
-    int a = lhs=="1";
-    int b = rhs=="1";
-    int r = 0;
-    if(op=="&") r = (a & b);
-    else if(op=="|") r = (a | b);
-    else if(op=="^") r = (a ^ b);
-    else return false;
-
-    Stack_push_back(values, r?"1":"0");
-    return true;
-}
-
-static bool flush(Stack& ops, Stack& values, int min_prec){
-    while(true){
-        string op = Stack_peek(ops);
-        if(op=="" || op=="(") break;
-
-        int p = prec(op);
-        if(p < min_prec) break;
-
-        Stack_pop(ops);
-        if(!applyOp(op, values)) return false;
     }
+    string op = Stack_pop(ops);
+    if (op == "(") {
+        return false;
+    }
+    if (stack_is_empty(vals)) {
+        return false;
+    }
+    long long b = stoll(Stack_pop(vals));
+    if (stack_is_empty(vals)) {
+        return false;
+    }
+    long long a = stoll(Stack_pop(vals));
+    long long res = 0;
+    if (op == "+") {
+        res = a + b;
+    } else if (op == "-") {
+        res = a - b;
+    } else if (op == "*") {
+        res = a * b;
+    } else {
+        return false;
+    }
+    Stack_push_back(vals, to_string(res));
     return true;
 }
 
-bool eval_logic_with_stack(const string& expr, string& result){
-    Stack values = Stack_create();
+bool evaluate_expression(const string& expr, long long& result) {
+    size_t n = expr.size();
+    if (n == 0) {
+        return false;
+    }
+
+    bool inside_num = false;
+    bool had_space_after_num = false;
+    for (size_t i = 0; i < n; i++) {
+        char c = expr[i];
+        if (isdigit(static_cast<unsigned char>(c))) {
+            if (had_space_after_num) {
+                return false;
+            }
+            inside_num = true;
+        } else if (isspace(static_cast<unsigned char>(c))) {
+            if (inside_num) {
+                had_space_after_num = true;
+                inside_num = false;
+            }
+        } else {
+            inside_num = false;
+            had_space_after_num = false;
+        }
+    }
+
+    Stack vals = Stack_create();
     Stack ops = Stack_create();
 
-    auto fail = [&](){
-        Stack_destroy(values);
+    bool expect_operand = true;
+    size_t i = 0;
+    bool has_token = false;
+
+    while (i < n) {
+        char c = expr[i];
+        if (isspace(static_cast<unsigned char>(c))) {
+            i++;
+            continue;
+        }
+
+        if (isdigit(static_cast<unsigned char>(c))) {
+            if (!expect_operand) {
+                Stack_destroy(vals);
+                Stack_destroy(ops);
+                return false;
+            }
+            string num_str;
+            while (i < n && isdigit(static_cast<unsigned char>(expr[i]))) {
+                num_str.push_back(expr[i]);
+                i++;
+            }
+            Stack_push_back(vals, num_str);
+            expect_operand = false;
+            has_token = true;
+            continue;
+        }
+
+        if (c == '(') {
+            if (!expect_operand) {
+                Stack_destroy(vals);
+                Stack_destroy(ops);
+                return false;
+            }
+            Stack_push_back(ops, "(");
+            expect_operand = true;
+            has_token = true;
+            i++;
+            continue;
+        }
+
+        if (c == ')') {
+            if (expect_operand) {
+                Stack_destroy(vals);
+                Stack_destroy(ops);
+                return false;
+            }
+            while (!stack_is_empty(ops) && stack_peek(ops) != "(") {
+                if (!apply_top_op(vals, ops)) {
+                    Stack_destroy(vals);
+                    Stack_destroy(ops);
+                    return false;
+                }
+            }
+            if (stack_is_empty(ops) || stack_peek(ops) != "(") {
+                Stack_destroy(vals);
+                Stack_destroy(ops);
+                return false;
+            }
+            Stack_pop(ops);
+            expect_operand = false;
+            i++;
+            continue;
+        }
+
+        if (c == '+' || c == '-' || c == '*') {
+            if (c == '-' && expect_operand) {
+                Stack_push_back(vals, "0");
+                Stack_push_back(ops, "-");
+                expect_operand = true;
+                has_token = true;
+                i++;
+                continue;
+            }
+
+            if (expect_operand) {
+                Stack_destroy(vals);
+                Stack_destroy(ops);
+                return false;
+            }
+
+            string curr_op(1, c);
+            while (!stack_is_empty(ops) && get_precedence(stack_peek(ops)) >= get_precedence(curr_op)) {
+                if (!apply_top_op(vals, ops)) {
+                    Stack_destroy(vals);
+                    Stack_destroy(ops);
+                    return false;
+                }
+            }
+            Stack_push_back(ops, curr_op);
+            expect_operand = true;
+            has_token = true;
+            i++;
+            continue;
+        }
+
+        Stack_destroy(vals);
         Stack_destroy(ops);
         return false;
-    };
-
-    bool expectValue = true;
-
-    for(size_t i=0; i<expr.size(); ++i){
-        char c = expr[i];
-        string s(1, c);
-
-        if(c==' ') continue;
-
-        if(c=='0' || c=='1'){
-            if(!expectValue) return fail();
-            Stack_push_back(values, s);
-            expectValue = false;
-        }
-        else if(c=='!'){
-            Stack_push_back(ops, s);
-            expectValue = true;
-        }
-        else if(c=='&' || c=='|' || c=='^'){
-            if(expectValue) return fail();
-            int p = prec(s);
-            if(!flush(ops, values, p)) return fail();
-            Stack_push_back(ops, s);
-            expectValue = true;
-        }
-        else if(c=='('){
-            Stack_push_back(ops, s);
-            expectValue = true;
-        }
-        else if(c==')'){
-            if(expectValue) return fail();
-            bool found = false;
-
-            while(true){
-                string op = Stack_peek(ops);
-                if(op == "") return fail();
-                Stack_pop(ops);
-
-                if(op=="("){
-                    found = true; 
-                    break;
-                }
-
-                if(!applyOp(op, values)) return fail();
-            }
-            if(!found) return fail();
-        }
-        else return fail();
     }
 
-    if(expectValue) return fail();
-
-    while(true){
-        string op = Stack_peek(ops);
-        if(op=="") break;
-        Stack_pop(ops);
-
-        if(op=="(") return fail();
-        if(!applyOp(op, values)) return fail();
+    if (!has_token || expect_operand) {
+        Stack_destroy(vals);
+        Stack_destroy(ops);
+        return false;
     }
 
-    string res = Stack_peek(values);
-    if(res=="") return fail();
-    Stack_pop(values);
+    while (!stack_is_empty(ops)) {
+        if (stack_peek(ops) == "(") {
+            Stack_destroy(vals);
+            Stack_destroy(ops);
+            return false;
+        }
+        if (!apply_top_op(vals, ops)) {
+            Stack_destroy(vals);
+            Stack_destroy(ops);
+            return false;
+        }
+    }
 
-    bool ok = (Stack_peek(values) == "");
-    if(!ok) return fail();
+    if (stack_is_empty(vals)) {
+        Stack_destroy(vals);
+        Stack_destroy(ops);
+        return false;
+    }
 
-    result = res;
-    Stack_destroy(values);
+    result = stoll(Stack_pop(vals));
+    bool ok = stack_is_empty(vals);
+
+    Stack_destroy(vals);
     Stack_destroy(ops);
-    return true;
+    return ok;
+}
+
+void run_task1() {
+    cout << "Введите арифметическое выражение: ";
+    string expr;
+    cin.ignore();
+    getline(cin, expr);
+    long long result = 0;
+    if (evaluate_expression(expr, result)) {
+        cout << "Результат: " << result << endl;
+    } else {
+        cout << "Ошибка в выражении" << endl;
+    }
 }

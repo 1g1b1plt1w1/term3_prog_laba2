@@ -95,81 +95,84 @@ void Linked_push_after(LinkedList& list, string prev_el, string data) {
     next_el -> prev = new_node;
 }
 
-void Linked_pop_back(LinkedList& list) {
-    if (!list.head) return;
+string Linked_pop_back(LinkedList& list) {
+    if (!list.head) return "";
 
+    string val = list.tail->data;
     if (list.head == list.tail) {
         delete list.head;
         list.head = list.tail = nullptr;
-        return;
+        return val;
     }
 
     Node* temp = list.tail;
     list.tail = list.tail->prev;
     list.tail->next = nullptr;
     delete temp;
+    return val;
 }
 
-void Linked_pop_front(LinkedList& list) {
-    if (!list.head) return;
+string Linked_pop_front(LinkedList& list) {
+    if (!list.head) return "";
 
+    string val = list.head->data;
     if (list.head == list.tail) {
         delete list.head;
         list.head = list.tail = nullptr;
-        return;
+        return val;
     }
 
     Node* temp = list.head;
     list.head = list.head->next;
     list.head->prev = nullptr;
     delete temp;
+    return val;
 }
 
-void Linked_pop_before(LinkedList& list, string next_el) {
-
+string Linked_pop_before(LinkedList& list, string next_el) {
     Node* node = list.head;
     while (node && node->data != next_el) {
         node = node->next;
     }
     if (!node || node == list.head) {
-        return;
+        return "";
     }
 
     Node* del_node = node->prev;
 
     if (del_node == list.head) {
-        Linked_pop_front(list);
-        return;
+        return Linked_pop_front(list);
     }
 
+    string val = del_node->data;
     Node* prev_el = del_node->prev;
     prev_el->next = node;
     node->prev = prev_el;
     delete del_node;
+    return val;
 }
 
-
-void Linked_pop_after(LinkedList& list, string prev_el) {
-
+string Linked_pop_after(LinkedList& list, string prev_el) {
     Node* node = list.head;
     while (node && node->data != prev_el) {
         node = node->next;
     }
     if (!node || node == list.tail) {
-        return;
+        return "";
     }
 
     Node* del_node = node->next;
 
     if (del_node == list.tail) {
-        Linked_pop_back(list);
-        return;
+        return Linked_pop_back(list);
     }
 
+    string val = del_node->data;
     Node* next_el = del_node->next;
     node->next = next_el;
     next_el->prev = node;
     delete del_node;
+    return val;
 }
 
 

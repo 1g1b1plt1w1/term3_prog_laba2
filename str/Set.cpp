@@ -1,72 +1,37 @@
+#include <iostream>
 #include "Set.h"
+#include "open_hash.h"
 
-Set Set_create(size_t capacity){
-    Set s;
-    s.map = HashOpen_create(capacity);
+using namespace std;
+
+Set Set_create(size_t capacity) {
+    Set s{hashOpen_create(capacity)};
     return s;
 }
 
-void Set_destroy(Set& s){
-    HashOpen_destroy(s.map);
+void Set_destroy(Set& s) {
+    hashOpen_destroy(s.map);
 }
 
-void Set_add(Set& s, string value){
-    HashOpen_put(s.map, value, "1");
+void Set_add(Set& s, const string& value) {
+    hashOpen_insert(s.map, value);
 }
 
-void Set_del(Set& s, string value){
-    HashOpen_del(s.map, value);
+bool Set_del(Set& s, const string& value) {
+    return hashOpen_del(s.map, value);
 }
 
-bool Set_has(const Set& s, string value){
-    return HashOpen_has(s.map, value);
+bool Set_has(const Set& s, const string& value) {
+    return hashOpen_find(s.map, value) != -1;
 }
 
-size_t Set_length(const Set& s){
-    return HashOpen_length(s.map);
-}
-
-string Set_read(const Set& s){
-    string all = HashOpen_read(s.map);
-    string out;
-    out.reserve(all.size());
-    bool in_key=false, after_colon=false;
-    for(char c: all){
-        if(c=='{'){ in_key=true; after_colon=false; out.push_back('{'); continue; }
-        if(c=='}'){ in_key=false; out.push_back('}'); out.push_back(' '); continue; }
-        if(!in_key){ continue; }
-        if(c==':'){ after_colon=true; continue; }
-        if(!after_colon){ out.push_back(c); }
-    }
-    return out;
-}
 vector<string> Set_keys(const Set& s) {
-    vector<string> out;
-    string raw = HashOpen_read(s.map);
-    string num;
-    bool in_key = false, after_colon = false;
-
-    for (char c : raw) {
-        if (c == '{') {
-            in_key = true;
-            after_colon = false;
-            num.clear();
-            continue;
+    vector<string> keys;
+    for (size_t i = 0; i < s.map.cap; i++) {
+        if (s.map.node[i].status == NodeStatus::USED) {
+            keys.push_back(s.map.node[i].val);
         }
-        if (c == '}') {
-            in_key = false;
-            if (!num.empty()) out.push_back(num);
-            continue;
-        }
-        if (!in_key) continue;
-        if (c == ':') {
-            after_colon = true;
-            continue;
-        }
-        if (!after_colon) num.push_back(c);
     }
-
-    return out;
+    return keys;
 }
-
 

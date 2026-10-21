@@ -1,72 +1,37 @@
-#pragma once
-#include <vector>
-#include <string>
-#include <iostream>
+#include "task3.h"
 #include "Set.h"
+#include <iostream>
+
 using namespace std;
 
-vector<Set> parse_subsets(const string& input) {
-    vector<Set> result;
-    string num;
+int count_genome_similarity(const string& first, const string& second) {
+    if (second.size() < 2 || first.size() < 2) {
+        return 0;
+    }
 
-    bool inside = false;
-    Set cur;
+    Set second_set = Set_create();
+    for (size_t i = 0; i + 1 < second.size(); i++) {
+        Set_add(second_set, second.substr(i, 2));
+    }
 
-    for (char c : input) {
-
-        if (c == '{') {
-            if (!inside) {
-                inside = true;
-                cur = Set_create(8);
-            }
-            continue;
-        }
-
-        if (c == '}') {
-            if (!num.empty()) {
-                Set_add(cur, num);
-                num.clear();
-            }
-            if (inside) {
-                result.push_back(cur);
-                inside = false;
-            }
-            continue;
-        }
-
-        if (!inside) continue;
-
-        if (isdigit(c)) num.push_back(c);
-        else {
-            if (!num.empty()) {
-                Set_add(cur, num);
-                num.clear();
-            }
+    int count = 0;
+    for (size_t i = 0; i + 1 < first.size(); i++) {
+        if (Set_has(second_set, first.substr(i, 2))) {
+            count++;
         }
     }
 
-    return result;
-}
-
-
-size_t intersection_size(const Set& a, const Set& b) {
-    vector<string> A = Set_keys(a);
-    size_t count = 0;
-
-    for (auto& x : A)
-        if (Set_has(b, x))
-            count++;
-
+    Set_destroy(second_set);
     return count;
 }
 
-string Set_to_string(const Set& s) {
-    vector<string> v = Set_keys(s);
-    string out = "{";
-    for (int i = 0; i < v.size(); i++) {
-        out += v[i];
-        if (i + 1 < v.size()) out += ",";
-    }
-    out += "}";
-    return out;
+void run_task3() {
+    string first_genom;
+    string second_genom;
+    cout << "Введите первый геном: ";
+    cin >> first_genom;
+    cout << "Введите второй геном: ";
+    cin >> second_genom;
+    int count = count_genome_similarity(first_genom, second_genom);
+    cout << count << endl;
 }

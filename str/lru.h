@@ -1,26 +1,23 @@
-#pragma once
+#ifndef LRU_H
+#define LRU_H
 #include <string>
-#include "linked_list.h"
-#include "hash_open.h"
+
 using namespace std;
 
-struct LRU {
-    size_t cap;
-    LinkedList order;
-    HashOpen map;
+struct LruNode{
+    int last_used = 0;
+    string key;
+    string value;
 };
 
+struct Lru{
+    size_t cap;
+    size_t sz;
+    LruNode* node;
+};
 
-LRU LRU_create(size_t capacity);
-
-
-void LRU_destroy(LRU& c);
-
-
-void LRU_touch(LRU& c, const string& key);
-
-
-void LRU_set(LRU& c, const string& key, const string& val);
-
-
-string LRU_get(LRU& c, const string& key);
+Lru Lru_create(const int& capacity);
+string Lru_get(const Lru& lru, const string& x, const int& step);
+void Lru_set(Lru& lru, const string& x, const string& y, const int& step);
+void Lru_destroy(Lru& lru);
+#endif

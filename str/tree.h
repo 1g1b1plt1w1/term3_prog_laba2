@@ -26,5 +26,6 @@ TreeNode* Tree_insert(TreeNode* node, int data);
 TreeNode* Tree_delete(TreeNode* node, int data);
 TreeNode* find_max(TreeNode* node);
 string Tree_read(const Tree& node);
-bool Tree_find(TreeNode* node, int data);
+bool is_member(const Tree& node, int find_data);
+void Tree_print(const Tree& node);
 #endif

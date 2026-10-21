@@ -20,60 +20,67 @@ void OneLinked_destroy(OneLinkedList& list) {
     list.tail = nullptr;
 }
 
-void OneLinked_pop_front(OneLinkedList& list) {
-    if (!list.head) return;
+string OneLinked_pop_front(OneLinkedList& list) {
+    if (!list.head) return "";
     OneNode* node = list.head;
+    string val = node->data;
     list.head = list.head->next;
     if (!list.head) list.tail = nullptr;
     delete node;
+    return val;
 }
 
-void OneLinked_pop_back(OneLinkedList& list) {
-    if (!list.head) return;
+string OneLinked_pop_back(OneLinkedList& list) {
+    if (!list.head) return "";
+    string val = list.tail->data;
     if (list.head == list.tail) {
         delete list.head;
         list.head = list.tail = nullptr;
-        return;
+        return val;
     }
     OneNode* node = list.head;
     while (node->next != list.tail) node = node->next;
     delete list.tail;
     list.tail = node;
     list.tail->next = nullptr;
+    return val;
 }
 
-void OneLinked_pop_after(OneLinkedList& list, string prev_value) {
-    if (!list.head) return;
+string OneLinked_pop_after(OneLinkedList& list, string prev_value) {
+    if (!list.head) return "";
 
     OneNode* prev = list.head;
     while (prev && prev->data != prev_value) prev = prev->next;
-    if (!prev || !prev->next) return;
+    if (!prev || !prev->next) return "";
 
     OneNode* del_el = prev->next;
+    string val = del_el->data;
     prev->next = del_el->next;
     if (del_el == list.tail) list.tail = prev;
     delete del_el;
+    return val;
 }
 
-void OneLinked_pop_before(OneLinkedList& list, string next_value) {
-    if (!list.head) return;
+string OneLinked_pop_before(OneLinkedList& list, string next_value) {
+    if (!list.head) return "";
 
-    if (list.head->data == next_value) return;
+    if (list.head->data == next_value) return "";
 
     if (list.head->next && list.head->next->data == next_value) {
-        OneLinked_pop_front(list);
-        return;
+        return OneLinked_pop_front(list);
     }
 
     OneNode* prev = list.head;
     while (prev && prev->next && prev->next->next && prev->next->next->data != next_value) {
         prev = prev->next;
     }
-    if (!prev || !prev->next || !prev->next->next) return;
+    if (!prev || !prev->next || !prev->next->next) return "";
 
     OneNode* del_el = prev->next;
+    string val = del_el->data;
     prev->next = del_el->next;
     delete del_el;
+    return val;
 }
 
 void OneLinked_push_back(OneLinkedList& list, string data) {
@@ -193,7 +200,7 @@ string OneLinked_read_reverse(const OneLinkedList& list){
     }
 
     temp.push_back(node->data);
-    for (int i = temp.size();i != -1;i --){
+    for (int i = temp.size() -1;i >= 0;i --){
         ss << " ";
         ss << temp[i];
     }

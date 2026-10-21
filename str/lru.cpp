@@ -1,52 +1,58 @@
+#include <iostream>
 #include "lru.h"
-#include "linked_list.h"
-#include "hash_open.h"
-#include <string>
-using namespace std;
+#include <climits>
+constexpr int MAX_CAP = 256*256;
 
-LRU LRU_create(size_t capacity) {
-    LRU c;
-    c.cap   = capacity;
-    c.order = Linked_create();
-    c.map   = HashOpen_create(capacity * 2);
-    return c;
+Lru Lru_create(const int& capacity){
+    Lru lru{0,0,nullptr};
+    lru.cap = (capacity < MAX_CAP)? capacity:MAX_CAP;
+    lru.node = new LruNode[capacity];
+    return lru;
 }
 
-void LRU_destroy(LRU& c) {
-    Linked_destroy(c.order);
-    HashOpen_destroy(c.map);
+void Lru_destroy(Lru& lru){
+    delete[] lru.node;
+    lru.node = nullptr;
+    lru.sz = 0;
+    lru.cap = 0;
 }
 
-void LRU_touch(LRU& c, const string& key) {
-    Linked_del_by_value(c.order, key);
-    Linked_push_back(c.order, key);
+string Lru_get(const Lru& lru,const string& x,const int& step){
+    for (int i = 0;i < lru.cap;i++){
+            if (lru.node[i].key == x){
+                lru.node[i].last_used = step;
+                return lru.node[i].value;
+            }
+        }
+    return "-1";
 }
 
-void LRU_set(LRU& c, const string& key, const string& val) {
-    if (HashOpen_has(c.map, key)) {
-        HashOpen_put(c.map, key, val);
-        LRU_touch(c, key);
-        return;
-    }
+void update_lru_node(Lru& lru,const string& x,const string& y,const int& step,const size_t idx){
+    lru.node[idx].key = x;
+    lru.node[idx].value = y;
+    lru.node[idx].last_used = step + 1;
+}
 
-    if (HashOpen_length(c.map) >= c.cap) {
-        if (c.order.head) {
-            string victim = c.order.head->data;
-            Linked_pop_front(c.order);
-            HashOpen_del(c.map, victim);
+void Lru_set(Lru& lru,const string& x,const string& y,const int& step){
+
+    for (int i = 0;i < (int)lru.sz;i++){
+        if (lru.node[i].key == x){
+            update_lru_node(lru,x,y,step,i);
+            return;
         }
     }
-
-    Linked_push_back(c.order, key);
-    HashOpen_put(c.map, key, val);
-}
-
-string LRU_get(LRU& c, const string& key) {
-    string val;
-    if (!HashOpen_get(c.map, key, val)) {
-        return "-1";
+    size_t del_idx = 0;
+    int min_last_used = INT_MAX;
+    if (lru.sz >= lru.cap){
+        for (int i = 0;i < (int)lru.cap;i++){
+            if (lru.node[i].last_used < min_last_used){
+                min_last_used = lru.node[i].last_used;
+                del_idx = i;
+            }
+        }
+        update_lru_node(lru,x,y,step,del_idx);
+    } else{
+        update_lru_node(lru,x,y,step,lru.sz);
+        lru.sz++;
     }
-
-    LRU_touch(c, key);
-    return val;
 }

@@ -1,9 +1,12 @@
 #ifndef TASK4_H
 #define TASK4_H
 
-#include <iostream>
+#include <string>
 #include "array.h"
+
 using namespace std;
 
-void generate_subarrays(const Array& src, Array& subset, size_t index);
+int count_stress_errors(const Array& dict, const string& text);
+void run_task4();
+
 #endif
